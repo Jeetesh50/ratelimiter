@@ -1,0 +1,11 @@
+spring:
+  redis:
+    host: redis-11558.c282.east-us-mz.azure.redns.redis-cloud.com
+    port: 11558
+    password: j8c41J9Mtzoj357t3ZPXKwxI0zyu0yKD
+    ssl: true
+    # Optionally set the database index (default is 0)
+    database: amitsinghrajput50gmailcom-free-db
+    # Specify the location of the Redis Cloud CA certificate (Trust Store)
+    # Ensure the file is present in the specified location
+    ssl-trust-store: classpath:redis_ca.pem
