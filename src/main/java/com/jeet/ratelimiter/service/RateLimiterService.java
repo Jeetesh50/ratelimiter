@@ -15,7 +15,7 @@ public class RateLimiterService {
     @Autowired
     private RedisTemplate<String, String> redisTemplate;
 
-    public boolean isAllowed(String userId) {
+    public synchronized boolean isAllowed(String userId) {
         String bucketKey = "rate:limiter:" + userId;
         long currentTime = Instant.now().getEpochSecond();
 
@@ -33,15 +33,16 @@ public class RateLimiterService {
             tokens = Integer.parseInt(parts[0]);
             lastRefillTime = Long.parseLong(parts[1]);
 
-            // Refill tokens
+            // Refill tokens based on elapsed time
             long timeElapsed = currentTime - lastRefillTime;
             int newTokens = (int) (timeElapsed * REFILL_RATE);
-            tokens = Math.min(BUCKET_CAPACITY, tokens + newTokens);
-            lastRefillTime = currentTime;
+            tokens = Math.min(BUCKET_CAPACITY, tokens + newTokens);  // Cap at BUCKET_CAPACITY
+            lastRefillTime += timeElapsed;  // Update last refill time
         }
 
         if (tokens > 0) {
             tokens--;  // Consume a token
+            // Atomically update bucket state in Redis
             redisTemplate.opsForValue().set(bucketKey, tokens + ":" + lastRefillTime, 1, TimeUnit.HOURS);
             return true;  // Request allowed
         }
